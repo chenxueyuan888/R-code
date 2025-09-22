@@ -1,0 +1,176 @@
+```{r}
+library("survival")
+library(survminer)
+
+library(readxl)
+
+fit <- survfit(Surv(PFS, PD) ~TP53_Mutation, data = data1)
+
+
+ggsurvplot(fit, data = data1)
+
+
+```
+```{r}
+library(readxl)
+library(tableone)
+data1 <- erbb_tp53
+mutation_summary <- data1 %>%
+  summarise(
+    Total = n(),
+    ERBB2 = sum(ERBB2 == "Mutation", na.rm = TRUE) / sum(!is.na(ERBB2)) * 100,
+    TP53 = sum(TP53 == "Mutation", na.rm = TRUE) / sum(!is.na(TP53)) * 100,
+    LRP1B = sum(LRP1B == "Mutation", na.rm = TRUE) / sum(!is.na(LRP1B)) * 100,
+    PIK3CA = sum(PIK3CA == "Mutation", na.rm = TRUE) / sum(!is.na(PIK3CA)) * 100,
+    SMAD4 = sum(SMAD4 == "Mutation", na.rm = TRUE) / sum(!is.na(SMAD4)) * 100,
+    RB1 = sum(RB1 == "Mutation", na.rm = TRUE) / sum(!is.na(RB1)) * 100,
+    STK11 = sum(STK11 == "Mutation", na.rm = TRUE) / sum(!is.na(STK11)) * 100,
+    MLL = sum(MLL == "Mutation", na.rm = TRUE) / sum(!is.na(MLL)) * 100,
+    KEAP1 = sum(KEAP1 == "Mutation", na.rm = TRUE) / sum(!is.na(KEAP1)) * 100,
+    BRCA2 = sum(BRCA2 == "Mutation", na.rm = TRUE) / sum(!is.na(BRCA2)) * 100,
+  ) %>%
+  pivot_longer(
+    cols = -Total, 
+    names_to = "Gene", 
+    values_to = "Mutation_Percent"
+  ) %>%
+  arrange(Mutation_Percent) 
+
+
+ggplot(mutation_summary, aes(x = Gene, y = Mutation_Percent, fill = Gene)) +
+  geom_col() + 
+  coord_flip() +  
+  geom_text(aes(label = paste0(round(Mutation_Percent, 1), "%")),
+            hjust = -0.01, color = "black", size = 4) +  、
+  labs(title = "Gene Mutation Percentages", x = "Gene", y = "Mutation Percentage (%)") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3") +
+expand_limits(y = c(0, max(mutation_summary$Mutation_Percent) * 1.1))  
+
+```
+
+```{r}
+library(ComplexHeatmap)
+library(tibble)
+library(dplyr)
+library(dplyr)
+library(readxl)
+library(tableone)
+library(pheatmap)
+library(grid)  
+
+pheatmap(data2,
+         annotation_col= rt2)
+
+
+
+
+```
+
+```{r}
+
+library(forestmodel)
+ library(survival)  
+library(ggplot2)
+library(ezcox)
+
+ res <-  ezcox(data1, covariates = c("tp53","LRP1B","PIK3CA","RB1","STK11","SMAD4"),           
+              time = "OS1",              
+              status = "D", 
+              return_models = TRUE)
+  library(forestmodel)
+              mds <- get_models(res) 
+              show_models(mds,merge_model =TRUE, 
+                          drop_controls =T)
+             
+```
+
+```{r}
+library(readxl)
+
+prop_df <- as.data.frame(prop_data)
+names(prop_df) <- c("TP53_Mutation", "Efficacy", "Percentage")
+
+library(ggsci) 
+       jco_palette <- c("#868686","#0073C2", "#EFC000","#CD534C",  "#7AA6DC", "#003C67")
+      
+       ggplot(prop_df, aes(x = factor(TP53_Mutation), y = Percentage, fill = Efficacy)) +  
+         geom_bar(stat = "identity", position = "fill") +  
+         geom_text(aes(label = paste0(round(Percentage, 1), "%")),
+                   position = position_fill(vjust = 0.5),
+                   size = 3.5, color = "white", fontface = "bold") +
+         labs(x = "TP53", y = "Percentage", fill = "Efficacy") +  
+         ggtitle("Percentage of Efficacy") +  
+         theme_minimal() +  
+         scale_y_continuous(labels = scales::percent) +  
+         scale_fill_manual(values = jco_palette) #scale_fill_jco()  #scale_fill_brewer(palette = "Set1")  
+       
+```
+
+
+
+```{r}
+library("survival")
+library(survminer)
+
+
+fit <- survfit(Surv(PFS, PD) ~TP53_Mutation, data = data1)
+p <- ggsurvplot(fit）
+
+
+
+fit <- survfit(Surv(OS1, D) ~TP53_Mutation, data = data1)
+
+p <- ggsurvplot(fit）
+
+p
+
+
+```
+
+```{r}
+library(readxl) 
+library(forestmodel)
+ library(survival)  
+library(ggplot2)
+library(ezcox)
+
+ res <-  ezcox(data1, covariates = c("TP53_Mutation","Sex","Smoking_status","Age","Brain_metastasis","Bone_metastasis","Liver_metastasis","First_line_Immunotherapy","First_line_Antiangiogenic_therapy"),##变量              
+              time = "OS1",              
+              status = "D", 
+              return_models = TRUE)
+  library(forestmodel)
+              mds <- get_models(res)
+          
+            
+              
+# 
+forest_plot <- show_models(mds, merge_model = TRUE, drop_controls = TRUE)
+              
+
+```
+
+```{r}
+
+library(readxl) 
+library(forestmodel)
+library("survival")
+library(survminer) 
+library(ggplot2)
+library(ezcox)
+ 
+library(ggplot2)
+ library(forestmodel)
+library(readxl) 
+
+fit <- survfit(Surv(PFS,PD) ~First_line_treatment, data = data1)
+p <- ggsurvplot(fit, data = data1)
+
+p
+
+fit <- survfit(Surv(OS, D) ~First_line_treatment, data = data1)
+p <- ggsurvplot(fit, data = data1)
+
+
+
+```
