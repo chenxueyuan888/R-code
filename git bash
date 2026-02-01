@@ -1,176 +1,528 @@
-```{r}
-library("survival")
-library(survminer)
-
 library(readxl)
 
-fit <- survfit(Surv(PFS, PD) ~TP53_Mutation, data = data1)
+data0 <- subset(data,data$group == 'Yes')
+data2 <- subset(data,data$group == 'No')
+data1 <- rbind(data0 ,data2)
 
 
-ggsurvplot(fit, data = data1)
+data1$Treatment<- as.factor(data1$Treatment)  
 
+levels(data1$Treatment)  
 
+data1$Treatment <- relevel(data1$Treatment, ref = "Not_available")  
+  
 ```
+
 ```{r}
-library(readxl)
+
 library(tableone)
-data1 <- erbb_tp53
-mutation_summary <- data1 %>%
-  summarise(
-    Total = n(),
-    ERBB2 = sum(ERBB2 == "Mutation", na.rm = TRUE) / sum(!is.na(ERBB2)) * 100,
-    TP53 = sum(TP53 == "Mutation", na.rm = TRUE) / sum(!is.na(TP53)) * 100,
-    LRP1B = sum(LRP1B == "Mutation", na.rm = TRUE) / sum(!is.na(LRP1B)) * 100,
-    PIK3CA = sum(PIK3CA == "Mutation", na.rm = TRUE) / sum(!is.na(PIK3CA)) * 100,
-    SMAD4 = sum(SMAD4 == "Mutation", na.rm = TRUE) / sum(!is.na(SMAD4)) * 100,
-    RB1 = sum(RB1 == "Mutation", na.rm = TRUE) / sum(!is.na(RB1)) * 100,
-    STK11 = sum(STK11 == "Mutation", na.rm = TRUE) / sum(!is.na(STK11)) * 100,
-    MLL = sum(MLL == "Mutation", na.rm = TRUE) / sum(!is.na(MLL)) * 100,
-    KEAP1 = sum(KEAP1 == "Mutation", na.rm = TRUE) / sum(!is.na(KEAP1)) * 100,
-    BRCA2 = sum(BRCA2 == "Mutation", na.rm = TRUE) / sum(!is.na(BRCA2)) * 100,
-  ) %>%
-  pivot_longer(
-    cols = -Total, 
-    names_to = "Gene", 
-    values_to = "Mutation_Percent"
-  ) %>%
-  arrange(Mutation_Percent) 
+library(survival)
 
 
-ggplot(mutation_summary, aes(x = Gene, y = Mutation_Percent, fill = Gene)) +
-  geom_col() + 
-  coord_flip() +  
-  geom_text(aes(label = paste0(round(Mutation_Percent, 1), "%")),
-            hjust = -0.01, color = "black", size = 4) +  、
-  labs(title = "Gene Mutation Percentages", x = "Gene", y = "Mutation Percentage (%)") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Set3") +
-expand_limits(y = c(0, max(mutation_summary$Mutation_Percent) * 1.1))  
+myVars <- c("Age0","Age","Sex", "Smoking_status", "Pathology","ECOG", "TMB","PDL1", "Stage","Extra_thoracic","Brain_Metastasis","Bone_Metastasis",  "Liver_Metastasis","Adernal_Metastasis", "group",
+"Treatment", "Antiangiogenic_therapy", "Immunotherapy", "chemoimmunotherapy")
+
+catVars <- c("Age","Sex", "Smoking_status", "Pathology","ECOG", "Stage","Extra_thoracic",
+"Brain_Metastasis","Bone_Metastasis",  "Liver_Metastasis","Adernal_Metastasis", "group",
+"Treatment", "Antiangiogenic_therapy", "Immunotherapy", "chemoimmunotherapy"
+)
+
+tab2 <- CreateTableOne(vars = myVars, data = data1, factorVars = catVars)
+
+
+tab3 <- CreateTableOne(vars = myVars, strata = "group" , data = data1, factorVars = catVars)
+
+print(tab3, showAllLevels = TRUE)
+
+tab4 <- CreateTableOne(vars = myVars, strata = "group" , data = data1, factorVars = catVars, addOverall = TRUE)
+
+print(tab4, showAllLevels = TRUE, quote = TRUE, noSpaces = TRUE)
 
 ```
 
 ```{r}
+library(readxl)
+
+library(survival)
+library("survminer")
+
+fit <- survfit(Surv(OS,D)~group, data = data1)
+fit
+p <- ggsurvplot(fit, data = data1, pval = T,
+           surv.median.line = "hv", 
+           palette = "aaas" ,
+           risk.table = TRUE,tables.height = 0.3,
+           #tables.theme = theme_cleantable(),
+           risk.table.y.text = F,
+           title="Overall Survival", 
+           ylab="Cumulative survival (percentage)",xlab = " Time (Months)", 
+ 
+         pval.size = 5,
+           pval.coord = c(6.5,0.3),
+            pval.method = T,
+           pval.method.size = 5,
+           pval.method.coord =  c(0,0.3),
+           break.x.by = 10,   
+           xlim = c(0, 55)
+) 
+
+
+
+fit <- survfit(Surv(OS,D)~chemoimmunotherapy, data = data1)
+fit
+j <-ggsurvplot(fit, data = data1, pval = T,
+           surv.median.line = "hv", #添加中位生存曲线
+           palette = "aaas" ,# 定义颜色 可选调色板有 "hue" "grey","npg","aaas","lancet","jco", "ucscgb","uchicago","simpsons"和"rickandmorty".
+           risk.table = TRUE,tables.height = 0.3,#表格，调高度
+           #tables.theme = theme_cleantable(),#去掉线
+           risk.table.y.text = F,
+           title="Overall Survival", #标题
+           ylab="Cumulative survival (percentage)",xlab = " Time (Months)", #更改横纵坐标
+           # P值文本大小和位置
+         pval.size = 5,# 指定p值文本大小的数字，默认为 5。
+           pval.coord = c(7,0.3),# 长度为2的数字向量，指定p值位置x、y，如pval.coord=c(x,y)。
+            pval.method = T
+) 
+j
+
+```
+
+```{r}
+library(readxl)
+
+
+data0 <- subset(data,data$group == 'Yes')
+data2 <- subset(data,data$group == 'No')
+data1 <- rbind(data0 ,data2)
+
+library(forestmodel)
+ library(survival)  
+library(ggplot2)
+library(ezcox)
+data1$D <- as.numeric(data1$D)
+data1$OS <- as.numeric(data1$OS)
+
+data1$Mucle_Metastasis <- as.factor(data1$group)
+
+data1$Age <- as.factor(data1$Age)
+data1$Smoking_status <- as.factor(data1$Smoking_status)
+data1$Sex<- as.factor(data1$Sex)
+data1$ECOG  <- as.factor(data1$ECOG)
+data1$Brain_Metastasis   <- as.factor(data1$Brain_Metastasis  )
+data1$Bone_Metastasis   <- as.factor(data1$Bone_Metastasis  )
+data1$Liver_Metastasis   <- as.factor(data1$Liver_Metastasis  )
+data1$Pathology <- as.factor(data1$Pathology)
+data1$Immunotherapy <- as.factor(data1$Immunotherapy)
+data1$chemoimmunotherapy <- as.factor(data1$chemoimmunotherapy)
+
+
+
+ res <-  ezcox(data1, covariates = c("Age","Sex","Smoking_status","Pathology","ECOG","Stage","Extra_thoracic","Mucle_Metastasis","Brain_Metastasis","Bone_Metastasis","Liver_Metastasis","Adernal_Metastasis","chemoimmunotherapy"),##变量              
+              time = "OS",              
+              status = "D", 
+              return_models = TRUE)
+  library(survival)  
+library(ggplot2)
+              
+  library(forestmodel)
+              mds <- get_models(res) 
+         
+              show_models(mds,merge_model =TRUE, 
+                          drop_controls =T,                                      format_options = forest_model_format_options(point_size = 1.5))
+             
+
+
+
+
+forest_plot <- show_models(mds, merge_model = TRUE, drop_controls = TRUE,format_options = forest_model_format_options(point_size = 1.5))
+
+```
+
+
+```{r}
+
+
+
+library(readxl)
+
+ library(survival)
+library(ggplot2)
+library(forestmodel)
+library(readxl)
+
+
+data0 <- subset(data,data$group == 'Yes')
+data2 <- subset(data,data$group == 'No')
+data1 <- rbind(data0 ,data2)
+
+ data1$D <- as.numeric(data1$D)
+ 
+data1$OS <- as.numeric(data1$OS)
+
+library(forestmodel)
+ library(survival)  
+library(ggplot2)
+library(ezcox)
+data1$Mucle_Metastasis <- as.factor(data1$group)
+data1$Age <- as.factor(data1$Age)
+data1$Smoking_status <- as.factor(data1$Smoking_status)
+data1$Sex<- as.factor(data1$Sex)
+data1$ECOG  <- as.factor(data1$ECOG)
+data1$Brain_Metastasis   <- as.factor(data1$Brain_Metastasis  )
+data1$Bone_Metastasis   <- as.factor(data1$Bone_Metastasis  )
+data1$Liver_Metastasis   <- as.factor(data1$Liver_Metastasis  )
+data1$Pathology <- as.factor(data1$Pathology)
+data1$antitumor <- as.factor(data1$antitumor)
+data1$Immunotherapy <- as.factor(data1$Immunotherapy)
+
+library(survival)
+library(ggplot2)
+library(forestmodel)
+
+panels <- list(
+
+  list(width = 0.05),
+
+  list(width = 0.1, display = ~variable, fontface = "bold", heading = "Variable"),
+
+  list(width = 0.08, display = ~level),
+
+  list(width = 0.03, display = ~n, hjust = 1, heading = "N"),
+
+  list(width = 0.03, item = "vline", hjust = 0.5),
+
+  list(
+    width = 1.2, 
+    item = "forest", 
+    hjust = 0.5, 
+    heading = "Hazard ratio", 
+    linetype = "dashed", 
+    line_x = 0
+  ),
+  
+ 
+  list(width = 0.03, item = "vline", hjust = 0.5),
+
+  list(
+    width = 0.15, 
+    heading = " ", 
+    display = ~ ifelse(reference, "Reference", 
+                       sprintf("%0.2f (%0.2f, %0.2f)", 
+                               trans(estimate), trans(conf.low), trans(conf.high))
+    ), 
+    display_na = NA
+  ),
+
+  list(
+    width = 0.1, 
+    display = ~ ifelse(reference, "", format.pval(p.value, digits = 2, eps = 0.001)),
+    display_na = NA, 
+    hjust = 1, 
+    heading = "p"
+  ),
+  
+
+  list(width = 0.05)
+)
+
+
+m3 <- coxph(Surv(OS, D) ~ Mucle_Metastasis +  Age  + Stage + chemoimmunotherapy, data = data1)
+
+coxplot_m3 <- forest_model(
+  m3,
+  format_options = forest_model_format_options(
+    point_size = 3  
+  ),
+  panels = panels,
+  theme = theme_void() + 
+    theme(
+      panel.border = element_rect(colour = "black", fill = NA, linewidth = 1) 
+    )
+)
+
+print(coxplot_m3)
+
+
+ggsave("forest_plotmulti.pdf", plot = coxplot_m3, width = 10, height = 6)
+```
+
+
+```         
+```
+
+```{r}
+
+names(r1)
+```
+
+
+
+```{r}
+
+
 library(ComplexHeatmap)
 library(tibble)
 library(dplyr)
 library(dplyr)
 library(readxl)
-library(tableone)
+
+
+data1 <- data1[,-1]
+
+r1 <- t(data1)
+r1 <-data.frame(r1)
+
+library(dplyr)
+rt2 <- r1%>% dplyr::select("Mucle_Metastasis")
+
+
+data2 <- data1 %>% slice(2:48)
+
+data2[] <- lapply(data2, function(x) as.numeric(as.character(x)))
+
+
+identical (rownames (rt2) , colnames (data2)) 
+
+
 library(pheatmap)
 library(grid)  
 
+
+data2 = as.matrix(data2)
+
+
 pheatmap(data2,
-         annotation_col= rt2)
+         annotation_col= rt2, 
+        
+         fontsize = 10,                
+         legend = F,
+        cluster_cols =F,
+        cluster_rows = F,
+         show_colnames = F,
+         show_rownames = T,
+        rect_gp=gpar(col="white", lwd=2), 
+        border_color = "white")
 
 
 
-
+dev.off()
 ```
+
 
 ```{r}
 
-library(forestmodel)
- library(survival)  
-library(ggplot2)
-library(ezcox)
 
- res <-  ezcox(data1, covariates = c("tp53","LRP1B","PIK3CA","RB1","STK11","SMAD4"),           
-              time = "OS1",              
-              status = "D", 
-              return_models = TRUE)
-  library(forestmodel)
-              mds <- get_models(res) 
-              show_models(mds,merge_model =TRUE, 
-                          drop_controls =T)
-             
-```
+library(tidyverse)
 
-```{r}
 library(readxl)
 
-prop_df <- as.data.frame(prop_data)
-names(prop_df) <- c("TP53_Mutation", "Efficacy", "Percentage")
 
-library(ggsci) 
-       jco_palette <- c("#868686","#0073C2", "#EFC000","#CD534C",  "#7AA6DC", "#003C67")
-      
-       ggplot(prop_df, aes(x = factor(TP53_Mutation), y = Percentage, fill = Efficacy)) +  
-         geom_bar(stat = "identity", position = "fill") +  
-         geom_text(aes(label = paste0(round(Percentage, 1), "%")),
-                   position = position_fill(vjust = 0.5),
-                   size = 3.5, color = "white", fontface = "bold") +
-         labs(x = "TP53", y = "Percentage", fill = "Efficacy") +  
-         ggtitle("Percentage of Efficacy") +  
-         theme_minimal() +  
-         scale_y_continuous(labels = scales::percent) +  
-         scale_fill_manual(values = jco_palette) #scale_fill_jco()  #scale_fill_brewer(palette = "Set1")  
-       
+r1_long <- r1 %>%
+  pivot_longer(cols = -group, names_to = "gene", values_to = "mutation_status")
+
+library(dplyr)
+
+r1_long <- r1_long %>%
+  mutate(across(c("mutation_status"),
+                ~ as.numeric(as.character(.))))
+
+
+
+gene_mutation_summary <- r1_long %>%
+  group_by(group, gene) %>%
+  summarise(mutation_rate = mean(mutation_status, na.rm = TRUE)) %>%
+  ungroup()
+
+
+gene_mutation_summary1 <- subset(gene_mutation_summary,gene_mutation_summary$group   == 'muscle')
+
+
+ggplot(gene_mutation_summary1, aes(x = gene, y = mutation_rate, fill = group)) +
+  geom_bar(stat = "identity", position = position_dodge()) +  
+  geom_text(aes(label = percent(mutation_rate, accuracy = 0.1)), 
+            position = position_dodge(width = 0.9), 
+            hjust = 0,  
+            size = 2.5) + 
+  coord_flip() + 
+  scale_y_continuous(labels = percent_format(accuracy = 0.1)) +  
+  labs(x = "Gene", y = "Percentage of Mutation",
+       title = "Percentage of Mutation by Gene With Muscle Metastasis") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2") +  
+  expand_limits(y = c(0, max(gene_mutation_summary1$mutation_rate, na.rm = TRUE) * 1.05))  
+
+jama_colors <- c("non_muscle" = "#3366CC")  
+
+gene_mutation_summary2 <- subset(gene_mutation_summary,gene_mutation_summary$group   == 'non_muscle')
+
+
+ggplot(gene_mutation_summary2, aes(x = gene, y = mutation_rate, fill = group)) +
+  geom_bar(stat = "identity", position = position_dodge()) +  
+  geom_text(aes(label = percent(mutation_rate, accuracy = 0.1)),  
+            position = position_dodge(width = 0.9), 
+            hjust = 0,  
+            size = 2.5) +  
+  coord_flip() +  
+  scale_y_continuous(labels = percent_format(accuracy = 0.1)) + 
+       title = "Percentage of Mutation by Gene Without Muscle Metastasis") +
+  theme_minimal() +
+  scale_fill_manual(values = jama_colors) + 
+  expand_limits(y = c(0, max(gene_mutation_summary2$mutation_rate, na.rm = TRUE) * 1.05)) 
+```
+
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom)
+
+r1_long <- r1 %>% 
+  pivot_longer(cols = -group, names_to = "gene", values_to = "mutation")
+
+
+counts <- r1_long %>%
+  group_by(gene, group, mutation) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = group, values_from = count, values_fill = list(count = 0)) %>%
+  pivot_wider(names_from = mutation, values_from = c(muscle, non_muscle), names_sep = "_") %>%
+  replace(is.na(.), 0)
+
+
+print(colnames(counts))
+
+library(dplyr)
+library(tidyr)
+library(purrr)  
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+
+test_results <- counts %>%
+  rowwise() %>%
+  mutate(p.value = fisher.test(matrix(c(muscle_1, muscle_0, non_muscle_1, non_muscle_0), nrow = 2))$p.value) %>%
+  ungroup()
+
+
+print(head(test_results))
+
+
+test_results <- dplyr::select(test_results, gene, p.value)
+
+
+final_data <- left_join(counts, test_results, by = "gene")
+
+
+treatment_data <- data1 %>%
+  select(ID, start, OS, outcome,MM,Tmm,T10,TT,T11,Death,T20,T21,T30,T31,T40,T41,TL,follow_up,Continued) %>%
+  filter(!is.na(start) & !is.na(OS))  
+
+
+treatment_data_long <- treatment_data %>%
+  mutate(start_time = start,
+         end_time = OS,
+         event = outcome,
+         Tmm_time = ifelse(MM == "Muscle_Metastasis", Tmm, NA),
+        TOS = ifelse(Death == "yes", OS, NA),
+         arrow_end = ifelse(Continued == "continued", end_time + 1, NA)
+         )  
+
+library(ggplot2)
+
+ geom_segment(aes(x = T10, xend = T11, y = ID, yend = ID), color = "#377eb8", size = 5)
+
+geom_segment(aes(x = T20, xend = T21, y = ID, yend = ID), color = "#ffff33", size = 5)
+
+geom_segment(aes(x = T30, xend = T31, y = ID, yend = ID), color = "#f781bf", size = 5)
+
+geom_segment(aes(x = T40, xend = T41, y = ID, yend = ID), color = "#984ea3", size = 5)
+
+ggplot(treatment_data_long, aes(x = start_time, xend = end_time, y = ID, yend = ID, color = event)) +
+  geom_segment(size = 5, lineend = "round") +  
+  
+   geom_segment(aes(x = T10, xend = T11, y = ID, yend = ID), color = "#377eb8", size = 4) + 
+  
+   geom_segment(aes(x = T20, xend = T21, y = ID, yend = ID), color = "#ffff33", size = 4) +  
+  
+   geom_segment(aes(x = T30, xend = T31, y = ID, yend = ID), color = "#f781bf", size = 4) +  
+  
+   geom_segment(aes(x = T40, xend = T41, y = ID, yend = ID), color = "#984ea3", size = 4) +  
+  
+  geom_point(aes(x = Tmm_time), color = "black", size = 2, shape = 18) +  
+  geom_text(aes(x = Tmm_time, y = ID, label = "MM"), 
+            color = "black", size =2, vjust = -0.5, hjust = 1) + 
+  
+  
+  geom_point(aes(x = TOS), color = "#e41a1c", size = 2, shape = 19) +  
+  geom_text(aes(x = TOS, y = ID, label = "Death"), 
+            color = "black", size =2, vjust = -0.5, hjust = 0.5) +  
+  
+  
+  geom_point(aes(x = TL), color = "#ff7f00", size = 2, shape = 16) +  
+  geom_text(aes(x = TL, y = ID, label = "Loss"), 
+            color = "black", size =2, vjust = -0.5, hjust = -0.2) + 
+  
+  
+   geom_segment(data = filter(treatment_data_long, !is.na(arrow_end)),
+               aes(x = OS, xend = arrow_end, y = ID, yend = ID),
+               arrow = arrow(type = "open", ends = "last", length = unit(0.1, "inches")),
+               size = 1.5, color = "gray") +  
+  
+  
+  scale_x_continuous("Time in Months") +  
+  labs(title = "Treatments for Patients",
+       y = "Patient ID") +
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_brewer(palette = "Set2", name = "Treatment")  
+
+
 ```
 
 
 
 ```{r}
-library("survival")
-library(survminer)
 
-
-fit <- survfit(Surv(PFS, PD) ~TP53_Mutation, data = data1)
-p <- ggsurvplot(fit）
-
-
-
-fit <- survfit(Surv(OS1, D) ~TP53_Mutation, data = data1)
-
-p <- ggsurvplot(fit）
-
-p
-
-
-```
-
-```{r}
-library(readxl) 
-library(forestmodel)
- library(survival)  
-library(ggplot2)
-library(ezcox)
-
- res <-  ezcox(data1, covariates = c("TP53_Mutation","Sex","Smoking_status","Age","Brain_metastasis","Bone_metastasis","Liver_metastasis","First_line_Immunotherapy","First_line_Antiangiogenic_therapy"),##变量              
-              time = "OS1",              
-              status = "D", 
-              return_models = TRUE)
-  library(forestmodel)
-              mds <- get_models(res)
-          
-            
-              
-# 
-forest_plot <- show_models(mds, merge_model = TRUE, drop_controls = TRUE)
-              
-
-```
-
-```{r}
-
-library(readxl) 
-library(forestmodel)
-library("survival")
-library(survminer) 
-library(ggplot2)
-library(ezcox)
- 
-library(ggplot2)
- library(forestmodel)
-library(readxl) 
-
-fit <- survfit(Surv(PFS,PD) ~First_line_treatment, data = data1)
-p <- ggsurvplot(fit, data = data1)
-
-p
-
-fit <- survfit(Surv(OS, D) ~First_line_treatment, data = data1)
-p <- ggsurvplot(fit, data = data1)
-
+                library(ggplot2)
+                
+                mydata$id<-mydata$ID
+                mydata$Response<-mydata$Efficacy
+                
+                 
+                mydata$change <- as.numeric(as.character(mydata$change))
+                #mydata$pd <- as.numeric(as.character(mydata$pd))
+                #mydata$used <- as.numeric(as.character(mydata$used))
+                
+        
+                mydata <- mydata[!is.na(mydata$Response), ]
+                
+                library(ggplot2)
+                p <- ggplot(data = mydata, aes(x = reorder(id, change), y = change, fill = Response)) +
+                  geom_bar(stat = "identity", position = "dodge", width = 0.9) +
+                  scale_fill_brewer(palette = "Dark2") +
+                  xlab(NULL) +
+                  ylab("Percentage of Change from Baseline(%)") +
+                  ggtitle("Waterfall plot for clinical oncology data visualization") +
+                  theme_classic() +
+                  theme(legend.position = "right",
+                        legend.background = element_rect(fill = "lightgrey", size = 0.5, linetype = "solid", colour = "black"),
+                        legend.title = element_text(colour = "black", size = 10, face = "bold"),
+                        axis.text.x = element_blank(),
+                        axis.ticks.x = element_blank(),
+                        axis.line.x = element_blank(),
+                        plot.title = element_text(colour = "black", size = 12, face = "bold", hjust = 0.5)) +
+                  scale_y_continuous(limits = c(-75, 175), breaks = seq(-75, 175, 25)) +
+                  geom_hline(aes(yintercept = 20), colour = "darkgrey", linetype = "dashed", size = 0.5) +
+                  geom_hline(aes(yintercept = 0), colour = "black", linetype = "solid", size = 0.5) +
+                  geom_hline(aes(yintercept = -30), colour = "darkgrey", linetype = "dashed", size = 0.5)
+                
+                
+                plot(p)
 
 
 ```
