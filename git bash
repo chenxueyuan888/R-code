@@ -71,16 +71,16 @@ p <- ggsurvplot(fit, data = data1, pval = T,
 fit <- survfit(Surv(OS,D)~chemoimmunotherapy, data = data1)
 fit
 j <-ggsurvplot(fit, data = data1, pval = T,
-           surv.median.line = "hv", #添加中位生存曲线
-           palette = "aaas" ,# 定义颜色 可选调色板有 "hue" "grey","npg","aaas","lancet","jco", "ucscgb","uchicago","simpsons"和"rickandmorty".
-           risk.table = TRUE,tables.height = 0.3,#表格，调高度
-           #tables.theme = theme_cleantable(),#去掉线
+           surv.median.line = "hv",
+           palette = "aaas" ,
+           risk.table = TRUE,tables.height = 0.3,
+           #tables.theme = theme_cleantable(),
            risk.table.y.text = F,
-           title="Overall Survival", #标题
-           ylab="Cumulative survival (percentage)",xlab = " Time (Months)", #更改横纵坐标
-           # P值文本大小和位置
-         pval.size = 5,# 指定p值文本大小的数字，默认为 5。
-           pval.coord = c(7,0.3),# 长度为2的数字向量，指定p值位置x、y，如pval.coord=c(x,y)。
+           title="Overall Survival", 
+           ylab="Cumulative survival (percentage)",xlab = " Time (Months)", 
+           
+         pval.size = 5,
+           pval.coord = c(7,0.3),
             pval.method = T
 ) 
 j
